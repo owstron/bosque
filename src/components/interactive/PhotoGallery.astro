@@ -1,143 +1,243 @@
 ---
-import { getCollection } from 'astro:content';
 import { Image } from 'astro:assets';
+import fs from 'fs';
 
-const gallery = await getCollection('gallery');
-const categories = [...new Set(gallery.map(item => item.data.category))];
+// Read the optimized image list
+let imageList: Array<{carousel: string, lightbox: string, alt: string}> = [];
+
+try {
+  const imageListPath = './src/assets/images/photos-optimized/image-list.json';
+  const imageListData = fs.readFileSync(imageListPath, 'utf-8');
+  imageList = JSON.parse(imageListData);
+} catch (error) {
+  console.warn('Could not load image list:', error);
+}
+
+// Import optimized images
+const photos = await Promise.all(
+  imageList.map(async (item) => {
+    try {
+      const carouselModule = await import(`../../assets/images/photos-optimized/${item.carousel}`);
+      const lightboxModule = await import(`../../assets/images/photos-optimized/${item.lightbox}`);
+      return {
+        carousel: carouselModule.default,
+        lightbox: lightboxModule.default,
+        alt: item.alt
+      };
+    } catch (error) {
+      console.warn(`Could not import optimized images: ${item.carousel}`, error);
+      return null;
+    }
+  })
+);
+
+const validPhotos = photos.filter(photo => photo !== null);
 ---
 
 <div class="photo-gallery">
-  <div class="category-filters">
-    <button class="category-btn active" data-category="all">All</button>
-    {categories.map(category => (
-      <button class="category-btn" data-category={category}>
-        {category.charAt(0).toUpperCase() + category.slice(1)}
-      </button>
-    ))}
-  </div>
-
-  <div class="photo-grid">
-    {gallery.map(async (item) => {
-      const { Content } = await item.render();
-      return (
-        <div class="photo-item" data-category={item.data.category}>
-          <Image
-            src={item.data.image}
-            alt={item.data.alt}
-            width={300}
-            height={300}
-            loading="lazy"
-            class="gallery-image"
-          />
-          <div class="photo-overlay">
-            <h4>{item.data.title}</h4>
-            <div class="photo-description">
-              <Content />
-            </div>
-          </div>
+  <div class="photo-carousel">
+    <div class="carousel-container" id="photoCarousel">
+      {validPhotos.map((photo, index) => (
+        <div class="carousel-slide">
+          <a
+            href={photo.lightbox.src}
+            class="glightbox-gallery"
+            data-gallery="restaurant-photos"
+          >
+            <Image
+              src={photo.carousel}
+              alt={photo.alt}
+              width={400}
+              height={300}
+              loading={index < 3 ? "eager" : "lazy"}
+              class="carousel-image"
+            />
+          </a>
         </div>
-      );
-    })}
+      ))}
+    </div>
+
+    <button class="carousel-btn prev-btn" id="prevBtn" aria-label="Previous photo">‹</button>
+    <button class="carousel-btn next-btn" id="nextBtn" aria-label="Next photo">›</button>
+
   </div>
 </div>
 
 <script>
+  import GLightbox from 'glightbox';
+  import 'glightbox/dist/css/glightbox.min.css';
+
   document.addEventListener('DOMContentLoaded', () => {
-    const categoryBtns = document.querySelectorAll('.category-btn');
-    const photoItems = document.querySelectorAll('.photo-item');
+    // Initialize GLightbox for gallery
+    const lightbox = GLightbox({
+      selector: '.glightbox-gallery',
+      touchNavigation: true,
+      loop: true,
+      autoplayVideos: false,
+      zoomable: true,
+      draggable: true,
+    });
 
-    categoryBtns.forEach(btn => {
-      btn.addEventListener('click', () => {
-        categoryBtns.forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
+    // Carousel functionality
+    const carousel = document.getElementById('photoCarousel');
+    const slides = carousel?.querySelectorAll('.carousel-slide');
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    let currentSlide = 0;
+    const totalSlides = slides?.length || 0;
+    const slidesToShow = 3; // Show 3 images at once on desktop
 
-        const category = btn.dataset.category;
+    function updateCarousel() {
+      if (carousel && slides) {
+        const slideWidth = 100 / slidesToShow;
+        carousel.style.transform = `translateX(-${currentSlide * slideWidth}%)`;
+      }
+    }
 
-        photoItems.forEach(item => {
-          if (category === 'all' || item.dataset.category === category) {
-            item.style.display = 'block';
-          } else {
-            item.style.display = 'none';
-          }
-        });
-      });
+    function nextSlide() {
+      if (currentSlide < totalSlides - slidesToShow) {
+        currentSlide++;
+      } else {
+        currentSlide = 0;
+      }
+      updateCarousel();
+    }
+
+    function prevSlide() {
+      if (currentSlide > 0) {
+        currentSlide--;
+      } else {
+        currentSlide = Math.max(0, totalSlides - slidesToShow);
+      }
+      updateCarousel();
+    }
+
+    // Button event listeners
+    nextBtn?.addEventListener('click', nextSlide);
+    prevBtn?.addEventListener('click', prevSlide);
+
+
+    // Auto-advance carousel every 5 seconds
+    setInterval(nextSlide, 5000);
+
+    // Touch/swipe support for mobile
+    let startX = 0;
+    let endX = 0;
+
+    carousel?.addEventListener('touchstart', (e) => {
+      startX = e.touches[0].clientX;
+    });
+
+    carousel?.addEventListener('touchend', (e) => {
+      endX = e.changedTouches[0].clientX;
+      const diff = startX - endX;
+
+      if (Math.abs(diff) > 50) { // Minimum swipe distance
+        if (diff > 0) {
+          nextSlide();
+        } else {
+          prevSlide();
+        }
+      }
     });
   });
 </script>
 
 <style>
-  .category-filters {
-    display: flex;
-    justify-content: center;
-    gap: 1rem;
-    margin-bottom: 2rem;
-    flex-wrap: wrap;
+  .photo-gallery {
+    max-width: 1200px;
+    margin: 0 auto;
   }
 
-  .category-btn {
-    background: transparent;
-    border: 2px solid var(--color-primary);
-    color: var(--color-primary);
-    padding: 0.5rem 1.5rem;
-    border-radius: 25px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    font-family: inherit;
-  }
-
-  .category-btn.active,
-  .category-btn:hover {
-    background-color: var(--color-primary);
-    color: var(--color-bg);
-  }
-
-  .photo-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 1rem;
-  }
-
-  .photo-item {
+  .photo-carousel {
     position: relative;
-    aspect-ratio: 1;
+    overflow: hidden;
+    border-radius: 12px;
+    background: var(--color-bg);
+  }
+
+  .carousel-container {
+    display: flex;
+    transition: transform 0.3s ease;
+    width: 100%;
+  }
+
+  .carousel-slide {
+    flex: 0 0 33.333%; /* Show 3 slides on desktop */
+    padding: 0.5rem;
+  }
+
+  .carousel-slide a {
+    display: block;
     border-radius: 8px;
     overflow: hidden;
-    cursor: pointer;
     transition: transform 0.3s ease;
   }
 
-  .photo-item:hover {
+  .carousel-slide a:hover {
     transform: scale(1.05);
   }
 
-  .gallery-image {
+  .carousel-image {
     width: 100%;
-    height: 100%;
+    height: 250px;
     object-fit: cover;
+    cursor: pointer;
   }
 
-  .photo-overlay {
+  .carousel-btn {
     position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    background: linear-gradient(transparent, rgba(0,0,0,0.8));
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(1, 68, 33, 0.8);
     color: white;
-    padding: 1rem;
-    transform: translateY(100%);
-    transition: transform 0.3s ease;
+    border: none;
+    font-size: 2rem;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    z-index: 10;
   }
 
-  .photo-item:hover .photo-overlay {
-    transform: translateY(0);
+  .carousel-btn:hover {
+    background: rgba(1, 68, 33, 1);
+    transform: translateY(-50%) scale(1.1);
   }
 
-  .photo-overlay h4 {
-    margin-bottom: 0.5rem;
+  .prev-btn {
+    left: 10px;
   }
 
-  .photo-description {
-    font-size: 0.9rem;
-    opacity: 0.9;
+  .next-btn {
+    right: 10px;
+  }
+
+
+  /* Mobile responsiveness */
+  @media (max-width: 768px) {
+    .carousel-slide {
+      flex: 0 0 100%; /* Show 1 slide on mobile */
+    }
+
+    .carousel-image {
+      height: 200px;
+    }
+
+    .carousel-btn {
+      font-size: 1.5rem;
+      width: 40px;
+      height: 40px;
+    }
+  }
+
+  @media (min-width: 769px) and (max-width: 1024px) {
+    .carousel-slide {
+      flex: 0 0 50%; /* Show 2 slides on tablet */
+    }
   }
 </style>
