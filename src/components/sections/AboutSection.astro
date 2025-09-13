@@ -1,0 +1,76 @@
+---
+import { Image } from 'astro:assets';
+import Section from '../ui/Section.astro';
+import botanicalImg from '../../assets/images/plants.png';
+---
+
+<Section id="about" title="About Bosque">
+  <div class="about-content">
+    <div class="about-text">
+      <p class="lead">
+        Nestled in the heart of San Francisco's vibrant Mission District, Bosque offers an intimate wine bar experience that celebrates the natural beauty of both wine and food.
+      </p>
+      <p>
+        Our carefully curated selection features natural wines from small producers, paired with seasonal plates that highlight local ingredients. The name "Bosque" - meaning forest in Spanish - reflects our commitment to organic, earth-driven flavors and our cozy, woodland-inspired atmosphere.
+      </p>
+      <p>
+        Whether you're discovering a new favorite vintage or enjoying familiar classics, our knowledgeable staff is here to guide your journey through our ever-evolving menu of wines and seasonal specialties.
+      </p>
+    </div>
+    <div class="about-image">
+      <Image
+        src={botanicalImg}
+        alt="Botanical illustration representing our natural approach"
+        loading="lazy"
+      />
+    </div>
+  </div>
+</Section>
+
+<style>
+  .about-content {
+    display: grid;
+    gap: 3rem;
+    align-items: center;
+  }
+
+  .about-text {
+    max-width: 600px;
+  }
+
+  .lead {
+    font-size: 1.2rem;
+    font-style: italic;
+    color: var(--color-secondary);
+    margin-bottom: 1.5rem;
+  }
+
+  .about-text p {
+    margin-bottom: 1.5rem;
+    font-size: 1.1rem;
+    line-height: 1.7;
+  }
+
+  .about-image {
+    display: flex;
+    justify-content: center;
+  }
+
+  .about-image img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 8px;
+  }
+
+  @media (max-width: 767px) {
+    .about-image {
+      display: none;
+    }
+  }
+
+  @media (min-width: 768px) {
+    .about-content {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+</style>

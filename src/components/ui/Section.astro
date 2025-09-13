@@ -1,0 +1,25 @@
+---
+export interface Props {
+  id?: string;
+  title?: string;
+  class?: string;
+}
+
+const { id, title, class: className = '' } = Astro.props;
+---
+
+<section id={id} class={`section ${className}`}>
+  <div class="container">
+    {title && <h2 class="section-title">{title}</h2>}
+    <slot />
+  </div>
+</section>
+
+<style>
+  .section-title {
+    font-size: clamp(2rem, 4vw, 3rem);
+    text-align: center;
+    margin-bottom: 3rem;
+    color: var(--color-primary);
+  }
+</style>

@@ -1,0 +1,143 @@
+---
+import { getCollection } from 'astro:content';
+import { Image } from 'astro:assets';
+
+const gallery = await getCollection('gallery');
+const categories = [...new Set(gallery.map(item => item.data.category))];
+---
+
+<div class="photo-gallery">
+  <div class="category-filters">
+    <button class="category-btn active" data-category="all">All</button>
+    {categories.map(category => (
+      <button class="category-btn" data-category={category}>
+        {category.charAt(0).toUpperCase() + category.slice(1)}
+      </button>
+    ))}
+  </div>
+
+  <div class="photo-grid">
+    {gallery.map(async (item) => {
+      const { Content } = await item.render();
+      return (
+        <div class="photo-item" data-category={item.data.category}>
+          <Image
+            src={item.data.image}
+            alt={item.data.alt}
+            width={300}
+            height={300}
+            loading="lazy"
+            class="gallery-image"
+          />
+          <div class="photo-overlay">
+            <h4>{item.data.title}</h4>
+            <div class="photo-description">
+              <Content />
+            </div>
+          </div>
+        </div>
+      );
+    })}
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const categoryBtns = document.querySelectorAll('.category-btn');
+    const photoItems = document.querySelectorAll('.photo-item');
+
+    categoryBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        categoryBtns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+
+        const category = btn.dataset.category;
+
+        photoItems.forEach(item => {
+          if (category === 'all' || item.dataset.category === category) {
+            item.style.display = 'block';
+          } else {
+            item.style.display = 'none';
+          }
+        });
+      });
+    });
+  });
+</script>
+
+<style>
+  .category-filters {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+  }
+
+  .category-btn {
+    background: transparent;
+    border: 2px solid var(--color-primary);
+    color: var(--color-primary);
+    padding: 0.5rem 1.5rem;
+    border-radius: 25px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-family: inherit;
+  }
+
+  .category-btn.active,
+  .category-btn:hover {
+    background-color: var(--color-primary);
+    color: var(--color-bg);
+  }
+
+  .photo-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1rem;
+  }
+
+  .photo-item {
+    position: relative;
+    aspect-ratio: 1;
+    border-radius: 8px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: transform 0.3s ease;
+  }
+
+  .photo-item:hover {
+    transform: scale(1.05);
+  }
+
+  .gallery-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .photo-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(transparent, rgba(0,0,0,0.8));
+    color: white;
+    padding: 1rem;
+    transform: translateY(100%);
+    transition: transform 0.3s ease;
+  }
+
+  .photo-item:hover .photo-overlay {
+    transform: translateY(0);
+  }
+
+  .photo-overlay h4 {
+    margin-bottom: 0.5rem;
+  }
+
+  .photo-description {
+    font-size: 0.9rem;
+    opacity: 0.9;
+  }
+</style>

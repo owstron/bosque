@@ -1,0 +1,117 @@
+---
+import Section from '../ui/Section.astro';
+import Button from '../ui/Button.astro';
+import { RESTAURANT_INFO } from '../../utils/constants';
+---
+
+<Section id="contact" title="Visit Us">
+  <div class="contact-content">
+    <div class="contact-info">
+      <div class="info-block">
+        <h3>Address</h3>
+        <p>{RESTAURANT_INFO.address.full}</p>
+      </div>
+
+      <div class="info-block">
+        <h3>Hours</h3>
+        {Object.entries(RESTAURANT_INFO.hours).map(([day, hours]) => (
+          <p><strong>{day}:</strong> {hours}</p>
+        ))}
+      </div>
+
+      <div class="info-block">
+        <h3>Contact</h3>
+        <p>Phone: <a href={`tel:${RESTAURANT_INFO.contact.phone}`}>{RESTAURANT_INFO.contact.phone}</a></p>
+        <p>Email: <a href={`mailto:${RESTAURANT_INFO.contact.email}`}>{RESTAURANT_INFO.contact.email}</a></p>
+      </div>
+
+      <div class="info-block">
+        <h3>Reservations</h3>
+        <p>We recommend making a reservation to ensure your preferred seating time.</p>
+        <Button href={RESTAURANT_INFO.social.resy} target="_blank" variant="primary">
+          Reserve on Resy
+        </Button>
+      </div>
+    </div>
+
+    <div class="map-placeholder">
+      <div class="map-content">
+        <h4>Located in the Mission District</h4>
+        <p>Easily accessible by public transit and surrounded by the vibrant culture of Valencia Street.</p>
+        <p><em>Interactive map coming soon</em></p>
+      </div>
+    </div>
+  </div>
+</Section>
+
+<style>
+  .contact-content {
+    display: grid;
+    gap: 3rem;
+    margin-top: 2rem;
+  }
+
+  .contact-info {
+    display: grid;
+    gap: 2rem;
+  }
+
+  .info-block h3 {
+    color: var(--color-primary);
+    margin-bottom: 1rem;
+    font-size: 1.3rem;
+  }
+
+  .info-block p {
+    margin-bottom: 0.5rem;
+    line-height: 1.6;
+  }
+
+  .info-block a {
+    color: var(--color-secondary);
+    text-decoration: underline;
+  }
+
+  .info-block a:hover {
+    color: var(--color-primary);
+  }
+
+  .map-placeholder {
+    background: var(--color-bg);
+    border: 2px solid var(--color-primary);
+    border-radius: 8px;
+    padding: 2rem;
+    text-align: center;
+    min-height: 300px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .map-content h4 {
+    color: var(--color-primary);
+    margin-bottom: 1rem;
+  }
+
+  .map-content p {
+    color: var(--color-secondary);
+    margin-bottom: 0.5rem;
+  }
+
+  @media (min-width: 768px) {
+    .contact-content {
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .contact-info {
+      grid-template-columns: 1fr 1fr;
+      gap: 2rem;
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .contact-info {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

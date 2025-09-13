@@ -1,0 +1,220 @@
+---
+import { Image } from 'astro:assets';
+import Section from '../ui/Section.astro';
+import Button from '../ui/Button.astro';
+import menuImg from '../../assets/images/menu.jpg';
+import winesImg from '../../assets/images/wines.jpg';
+import fs from 'fs';
+import { marked } from 'marked';
+
+const specialsPath = './src/content/menu-specials.md';
+let specialsContent = '';
+try {
+  const specialsMarkdown = fs.readFileSync(specialsPath, 'utf-8');
+  specialsContent = marked(specialsMarkdown);
+} catch (error) {
+  console.warn('Could not load menu specials:', error);
+}
+---
+
+<Section id="menu" title="Menu">
+  <div class="menu-content">
+    <div class="menu-bottom">
+      <div class="specials-column">
+        {specialsContent && (
+          <div class="specials-section">
+            <div set:html={specialsContent} />
+          </div>
+        )}
+      </div>
+
+      <div class="buttons-column">
+        <div class="menu-actions">
+          <a href={menuImg.src} class="glightbox btn btn-primary" data-gallery="menu">
+            View Full Menu
+          </a>
+          <a href={winesImg.src} class="glightbox btn btn-secondary" data-gallery="wines">
+            Wine List
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</Section>
+
+<style>
+  .menu-content {
+    display: flex;
+    flex-direction: column;
+    gap: 3rem;
+  }
+
+  .menu-bottom {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 3rem;
+    align-items: center;
+  }
+
+  .specials-column {
+    display: flex;
+    justify-content: flex-start;
+  }
+
+  .buttons-column {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 300px;
+  }
+
+  .menu-description {
+    font-size: 1.2rem;
+    color: var(--color-secondary);
+    margin-bottom: 2rem;
+    line-height: 1.7;
+  }
+
+  .menu-categories {
+    display: grid;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+  }
+
+  .category h3 {
+    color: var(--color-primary);
+    margin-bottom: 0.5rem;
+    font-size: 1.2rem;
+  }
+
+  .category p {
+    color: var(--color-secondary);
+    line-height: 1.6;
+  }
+
+  .menu-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    align-items: center;
+  }
+
+  .specials-section {
+    padding: 1.5rem;
+    background: var(--color-bg);
+    border-radius: 8px;
+    border: 2px solid var(--color-primary);
+    border-left: 4px solid var(--color-primary);
+    width: 100%;
+  }
+
+  .specials-section h1 {
+    color: var(--color-primary);
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+    border-bottom: 2px solid var(--color-primary);
+    padding-bottom: 0.5rem;
+  }
+
+  .specials-section h2 {
+    color: var(--color-primary);
+    font-size: 1.2rem;
+    margin: 1.5rem 0 0.5rem 0;
+  }
+
+  .specials-section ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .specials-section li {
+    margin-bottom: 0.5rem;
+    padding: 0.25rem 0;
+    color: var(--color-secondary);
+    line-height: 1.6;
+  }
+
+  .specials-section strong {
+    color: var(--color-primary);
+  }
+
+  /* Button styles for GLightbox links */
+  .btn {
+    display: inline-block;
+    padding: 0.75rem 1.5rem;
+    border-radius: 4px;
+    text-decoration: none;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    border: none;
+    font-size: 1rem;
+  }
+
+  .btn-primary {
+    background-color: var(--color-primary);
+    color: white;
+  }
+
+  .btn-primary:hover {
+    background-color: color-mix(in srgb, var(--color-primary) 80%, black);
+    transform: translateY(-2px);
+  }
+
+  .btn-secondary {
+    background-color: transparent;
+    color: var(--color-primary);
+    border: 2px solid var(--color-primary);
+  }
+
+  .btn-secondary:hover {
+    background-color: var(--color-primary);
+    color: white;
+    transform: translateY(-2px);
+  }
+
+  .menu-image {
+    display: flex;
+    justify-content: center;
+  }
+
+  .menu-image img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+  }
+
+  @media (max-width: 767px) {
+    .menu-bottom {
+      grid-template-columns: 1fr;
+      gap: 2rem;
+    }
+
+    .buttons-column {
+      min-height: auto;
+      padding: 1rem 0;
+    }
+
+    .menu-actions {
+      flex-direction: row;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+  }
+</style>
+
+<script>
+  import GLightbox from 'glightbox';
+  import 'glightbox/dist/css/glightbox.min.css';
+
+  document.addEventListener('DOMContentLoaded', () => {
+    const lightbox = GLightbox({
+      selector: '.glightbox',
+      touchNavigation: true,
+      loop: false,
+      autoplayVideos: false,
+    });
+  });
+</script>
