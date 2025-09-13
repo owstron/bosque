@@ -1,37 +1,17 @@
 ---
 import { Image } from 'astro:assets';
-import fs from 'fs';
 
-// Read the optimized image list
-let imageList: Array<{carousel: string, lightbox: string, alt: string}> = [];
-
-try {
-  const imageListPath = './src/assets/images/photos-optimized/image-list.json';
-  const imageListData = fs.readFileSync(imageListPath, 'utf-8');
-  imageList = JSON.parse(imageListData);
-} catch (error) {
-  console.warn('Could not load image list:', error);
-}
-
-// Import optimized images
-const photos = await Promise.all(
-  imageList.map(async (item) => {
-    try {
-      const carouselModule = await import(`../../assets/images/photos-optimized/${item.carousel}`);
-      const lightboxModule = await import(`../../assets/images/photos-optimized/${item.lightbox}`);
-      return {
-        carousel: carouselModule.default,
-        lightbox: lightboxModule.default,
-        alt: item.alt
-      };
-    } catch (error) {
-      console.warn(`Could not import optimized images: ${item.carousel}`, error);
-      return null;
-    }
-  })
-);
-
-const validPhotos = photos.filter(photo => photo !== null);
+// For build compatibility, we'll just use static URLs for now
+// The optimized images will be copied to the public directory
+const validPhotos = Array.from({ length: 75 }, (_, i) => {
+  const imageNumbers = ["01","02","03","04","05","06","07","08","09","100","11","14","15","16","18","19","21","22","24","25","27","28","30","31","32","33","34","35","36","37","39","40","41","42","43","46","47","48","49","50","53","54","55","57","58","59","61","62","63","65","67","68","70","71","72","73","74","75","76","77","78","79","80","82","83","84","85","86","91","92","93","94","95","96","97"];
+  const imageNumber = imageNumbers[i];
+  return {
+    carousel: `/photos/imadali-bosqueSF-${imageNumber}-thumb.webp`,
+    lightbox: `/photos/imadali-bosqueSF-${imageNumber}-full.webp`,
+    alt: `Bosque restaurant photo ${imageNumber}`
+  };
+});
 ---
 
 <div class="photo-gallery">
@@ -40,11 +20,11 @@ const validPhotos = photos.filter(photo => photo !== null);
       {validPhotos.map((photo, index) => (
         <div class="carousel-slide">
           <a
-            href={photo.lightbox.src}
+            href={photo.lightbox}
             class="glightbox-gallery"
             data-gallery="restaurant-photos"
           >
-            <Image
+            <img
               src={photo.carousel}
               alt={photo.alt}
               width={400}
