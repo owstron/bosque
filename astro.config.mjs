@@ -4,8 +4,8 @@ import sitemap from '@astrojs/sitemap';
 
 // https://astro.build/config
 export default defineConfig({
-  site: 'https://owstron.github.io',
-  base: '/bosque-restaurant',
+  site: 'https://bosquewinebar.netlify.app',
+  // Remove base for Netlify - only needed for GitHub Pages subdirectories
   trailingSlash: 'ignore',
   output: 'static',
   integrations: [
